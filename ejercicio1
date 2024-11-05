@@ -1,0 +1,182 @@
+class Pokemon:
+    def __init__(self, nombre, numero, tipos):
+        self.nombre = nombre
+        self.numero = numero
+        self.tipos = tipos  # Lista de tipos
+
+    def __repr__(self):
+        return f"{self.nombre} (Número: {self.numero}, Tipos: {', '.join(self.tipos)})"
+
+
+class BinaryTree:
+    class __Node:
+        def __init__(self, pokemon):
+            self.pokemon = pokemon
+            self.left = None
+            self.right = None
+
+    def __init__(self, key_function):
+        self.root = None
+        self.key_function = key_function
+
+    def insert(self, pokemon):
+        if self.root is None:
+            self.root = self.__Node(pokemon)
+        else:
+            self.__insert(self.root, pokemon)
+
+    def __insert(self, node, pokemon):
+        key = self.key_function(pokemon)
+        if key < self.key_function(node.pokemon):
+            if node.left is None:
+                node.left = self.__Node(pokemon)
+            else:
+                self.__insert(node.left, pokemon)
+        else:
+            if node.right is None:
+                node.right = self.__Node(pokemon)
+            else:
+                self.__insert(node.right, pokemon)
+
+    def search_by_name(self, substring):
+        results = []
+        self.__search_by_name(self.root, substring, results)
+        return results
+
+    def __search_by_name(self, node, substring, results):
+        if node is not None:
+            if substring.lower() in node.pokemon.nombre.lower():
+                results.append(node.pokemon)
+            self.__search_by_name(node.left, substring, results)
+            self.__search_by_name(node.right, substring, results)
+
+    def search_by_number(self, numero):
+        return self.__search_by_number(self.root, numero)
+
+    def __search_by_number(self, node, numero):
+        if node is None:
+            return None
+        if node.pokemon.numero == numero:
+            return node.pokemon
+        elif numero < node.pokemon.numero:
+            return self.__search_by_number(node.left, numero)
+        else:
+            return self.__search_by_number(node.right)
+
+    def get_pokemons_by_type(self, tipo):
+        results = []
+        self.__get_pokemons_by_type(self.root, tipo, results)
+        return results
+
+    def __get_pokemons_by_type(self, node, tipo, results):
+        if node is not None:
+            if tipo in node.pokemon.tipos:
+                results.append(node.pokemon)
+            self.__get_pokemons_by_type(node.left, tipo, results)
+            self.__get_pokemons_by_type(node.right, tipo, results)
+
+    def in_order(self):
+        return self.__in_order(self.root)
+
+    def __in_order(self, node):
+        if node is None:
+            return []
+        return self.__in_order(node.left) + [node.pokemon] + self.__in_order(node.right)
+
+    def level_order(self):
+        results = []
+        if self.root is None:
+            return results
+        queue = [self.root]
+        while queue:
+            node = queue.pop(0)
+            results.append(node.pokemon)
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        return results
+
+
+def main():
+    pokemons = [
+        Pokemon("Pikachu", 25, ["Eléctrico"]),
+        Pokemon("Bulbasaur", 1, ["Planta", "Veneno"]),
+        Pokemon("Charmander", 4, ["Fuego"]),
+        Pokemon("Squirtle", 7, ["Agua"]),
+        Pokemon("Gyarados", 130, ["Agua", "Volador"]),
+        Pokemon("Mudkip", 258, ["Agua", "Tierra"]),
+        Pokemon("Jolteon", 135, ["Eléctrico"]),
+        Pokemon("Lycanroc", 745, ["Roca"]),
+        Pokemon("Tyrantrum", 697, ["Roca", "Dragón"]),
+        Pokemon("Steelix", 208, ["Acero", "Tierra"]),
+    ]
+
+    # arboles 
+    tree_by_name = BinaryTree(lambda p: p.nombre)
+    tree_by_number = BinaryTree(lambda p: p.numero)
+    tree_by_type = BinaryTree(lambda p: p.tipos)  
+
+    # insertar pokemon en los arboles
+    for pokemon in pokemons:
+        tree_by_name.insert(pokemon)
+        tree_by_number.insert(pokemon)
+
+    # a) Mostrar todos los datos de un Pokémon por número
+    search_number = 1
+    found_pokemon = tree_by_number.search_by_number(search_number)
+    if found_pokemon:
+        print(f"Encontrado por número: {found_pokemon}")
+    else:
+        print("Pokémon no encontrado por número.")
+
+    # Buscar Pokémon por nombre
+    search_name = "bul"
+    found_pokemons = tree_by_name.search_by_name(search_name)
+    if found_pokemons:
+        print(f"Pokémon encontrados por nombre que contienen '{search_name}':")
+        for pokemon in found_pokemons:
+            print(pokemon)
+    else:
+        print(f"No se encontraron Pokémon que contengan '{search_name}'.")
+
+    # c) Obtener Pokémon por tipo
+    search_type = "Agua"
+    found_pokemons_by_type = tree_by_name.get_pokemons_by_type(search_type)
+    if found_pokemons_by_type:
+        print(f"Pokémon de tipo '{search_type}':")
+        for pokemon in found_pokemons_by_type:
+            print(pokemon)
+    else:
+        print(f"No se encontraron Pokémon de tipo '{search_type}'.")
+
+    # d) Listado en orden ascendente por número
+    print("\nListado en orden ascendente por número:")
+    for pokemon in tree_by_number.in_order():
+        print(pokemon)
+
+    # Listado en orden por nombre (nivel)
+    print("\nListado por nivel (nombre):")
+    for pokemon in tree_by_name.level_order():
+        print(pokemon)
+
+    # e) Mostrar datos de Jolteon, Lycanroc y Tyrantrum
+    pokemon_names_to_show = ["Jolteon", "Lycanroc", "Tyrantrum"]
+    print("\nDatos de Jolteon, Lycanroc y Tyrantrum:")
+    for name in pokemon_names_to_show:
+        found_pokemon = tree_by_name.search_by_name(name)
+        if found_pokemon:
+            for pokemon in found_pokemon:
+                print(pokemon)
+        else:
+            print(f"{name} no encontrado.")
+
+    # f) Contar Pokémon de tipo eléctrico y acero
+    tipos_a_contar = ["Eléctrico", "Acero"]
+    for tipo in tipos_a_contar:
+        count = len(tree_by_name.get_pokemons_by_type(tipo))
+        print(f"Cantidad de Pokémon de tipo '{tipo}': {count}")
+
+
+if __name__ == "__main__":
+    main()
